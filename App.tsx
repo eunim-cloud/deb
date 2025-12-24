@@ -17,6 +17,8 @@ const App: React.FC = () => {
   const [playlist, setPlaylist] = useState<YouTubeVideo[]>([]);
   // Cache playlists by category to avoid re-fetching
   const [playlistCache, setPlaylistCache] = useState<Record<string, YouTubeVideo[]>>({});
+  // Track drawn cards to avoid duplicates
+  const [drawnCardIds, setDrawnCardIds] = useState<Set<number>>(new Set());
 
   const categories: Category[] = ['출근', '코어타임', '야근', '멘탈', '퇴근'];
 
@@ -60,6 +62,11 @@ const App: React.FC = () => {
     loadSongs();
   }, [selectedCategory]);
 
+  // Reset drawn cards when category changes
+  useEffect(() => {
+    setDrawnCardIds(new Set());
+  }, [selectedCategory]);
+
   const getRandomSong = useCallback(() => {
     if (playlist.length === 0) {
       return {
@@ -96,6 +103,15 @@ const App: React.FC = () => {
 
     if (availableCards.length === 0) availableCards = CARDS;
 
+    // Filter out already drawn cards
+    const undrawnCards = availableCards.filter(card => !drawnCardIds.has(card.id));
+
+    // If all cards have been drawn, reset the drawn cards list
+    const cardsToUse = undrawnCards.length > 0 ? undrawnCards : availableCards;
+    if (undrawnCards.length === 0) {
+      setDrawnCardIds(new Set());
+    }
+
     // Shuffle animation
     const duration = 1500;
     const intervalTime = 80;
@@ -108,14 +124,17 @@ const App: React.FC = () => {
           clearInterval(interval);
           resolve();
         } else {
-          const randomIndex = Math.floor(Math.random() * availableCards.length);
-          setPreviewCard(availableCards[randomIndex]);
+          const randomIndex = Math.floor(Math.random() * cardsToUse.length);
+          setPreviewCard(cardsToUse[randomIndex]);
         }
       }, intervalTime);
     });
 
-    const randomIndex = Math.floor(Math.random() * availableCards.length);
-    const selectedCard = availableCards[randomIndex];
+    const randomIndex = Math.floor(Math.random() * cardsToUse.length);
+    const selectedCard = cardsToUse[randomIndex];
+
+    // Add selected card to drawn cards
+    setDrawnCardIds(prev => new Set(prev).add(selectedCard.id));
 
     setCurrentCard(selectedCard);
     setPreviewCard(null); // Clear preview

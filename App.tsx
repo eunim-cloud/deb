@@ -43,15 +43,19 @@ const App: React.FC = () => {
       }
 
       const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
-      if (apiKey) {
-        // Only show spinner for initial song load, not card draw
-        if (!currentCard) setIsLoading(true);
-        const keyword = getKeywordForCategory(selectedCategory);
-        const songs = await fetchWorkSongs(apiKey, keyword);
-        setPlaylist(songs);
-        setPlaylistCache(prev => ({ ...prev, [selectedCategory]: songs }));
+      if (!apiKey) {
+        console.warn('YouTube API key is not set. Please set VITE_YOUTUBE_API_KEY in your .env.local file.');
         setIsLoading(false);
+        return;
       }
+
+      // Only show spinner for initial song load, not card draw
+      if (!currentCard) setIsLoading(true);
+      const keyword = getKeywordForCategory(selectedCategory);
+      const songs = await fetchWorkSongs(apiKey, keyword);
+      setPlaylist(songs);
+      setPlaylistCache(prev => ({ ...prev, [selectedCategory]: songs }));
+      setIsLoading(false);
     };
     loadSongs();
   }, [selectedCategory]);

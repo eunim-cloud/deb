@@ -38,23 +38,17 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const loadSongs = async () => {
-      // Check cache first
+      // Check client-side cache first
       if (playlistCache[selectedCategory] && playlistCache[selectedCategory].length > 0) {
         setPlaylist(playlistCache[selectedCategory]);
         return;
       }
 
-      const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
-      if (!apiKey) {
-        console.warn('YouTube API key is not set. Please set VITE_YOUTUBE_API_KEY in your .env.local file.');
-        setIsLoading(false);
-        return;
-      }
-
       // Only show spinner for initial song load, not card draw
       if (!currentCard) setIsLoading(true);
-      const keyword = getKeywordForCategory(selectedCategory);
-      const songs = await fetchWorkSongs(apiKey, keyword);
+      
+      // Fetch from server-side cached API
+      const songs = await fetchWorkSongs(selectedCategory);
       setPlaylist(songs);
       setPlaylistCache(prev => ({ ...prev, [selectedCategory]: songs }));
       setIsLoading(false);

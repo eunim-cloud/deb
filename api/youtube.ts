@@ -5,30 +5,27 @@ export interface YouTubeVideo {
     channelTitle: string;
 }
 
-export const fetchWorkSongs = async (apiKey: string, keyword?: string): Promise<YouTubeVideo[]> => {
-    const query = keyword || "직장인 노동요"; // Office worker work songs
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`;
+interface CacheResponse {
+    data: YouTubeVideo[];
+    cached: boolean;
+    timestamp: number;
+    stale?: boolean;
+}
 
+/**
+ * Fetch work songs from cached server API endpoint
+ * This reduces YouTube API quota usage by caching results for 12 hours
+ */
+export const fetchWorkSongs = async (category: string): Promise<YouTubeVideo[]> => {
     try {
-        const response = await fetch(url);
-        const data = await response.json();
-
+        const response = await fetch(`/api/youtube-cache?category=${encodeURIComponent(category)}`);
+        
         if (!response.ok) {
-            // Log detailed error for debugging
-            console.error('YouTube API Error:', data);
-            throw new Error(data.error?.message || 'Failed to fetch from YouTube API');
+            throw new Error(`Failed to fetch songs: ${response.statusText}`);
         }
 
-        if (!data.items) {
-            return [];
-        }
-
-        return data.items.map((item: any) => ({
-            id: item.id.videoId,
-            title: item.snippet.title, // HTML entities might be returned, might need decoding if React doesn't handle it
-            thumbnail: item.snippet.thumbnails.medium.url,
-            channelTitle: item.snippet.channelTitle,
-        }));
+        const result: CacheResponse = await response.json();
+        return result.data;
     } catch (error) {
         console.error("Error fetching YouTube videos:", error);
         return [];

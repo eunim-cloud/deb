@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .animation-delay-200 {
+        animation-delay: 200ms;
+    }
+
+    .animation-delay-400 {
+        animation-delay: 400ms;
+    }
+}
+
+@keyframes shuffle-left {
+
+    0%,
+    100% {
+        transform: translateX(0) rotate(-6deg);
+    }
+
+    50% {
+        transform: translateX(-60px) rotate(-12deg);
+    }
+}
+
+@keyframes shuffle-right {
+
+    0%,
+    100% {
+        transform: translateX(0) rotate(6deg);
+    }
+
+    50% {
+        transform: translateX(60px) rotate(12deg);
+    }
+}
+
+.animate-shuffle-left {
+    animation: shuffle-left 1.5s ease-in-out infinite;
+}
+
+.animate-shuffle-right {
+    animation: shuffle-right 1.5s ease-in-out infinite;
+}
